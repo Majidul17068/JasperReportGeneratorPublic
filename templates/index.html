@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI JRXML Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .chat-container {
+            padding: 30px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .chat-messages {
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background: #e3f2fd;
+            margin-left: auto;
+            color: #1565c0;
+        }
+
+        .bot-message {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .download-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .download-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .example-queries {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .example-queries h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .example-query {
+            background: white;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .example-query:hover {
+            background: #e3f2fd;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI JRXML Generator</h1>
+            <p>Generate JasperReports JRXML files from natural language queries</p>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    👋 Hello! I can help you generate JRXML reports from your database. 
+                    Just describe what report you want, and I'll create the SQL query and JRXML file for you.
+                </div>
+            </div>
+
+            <div class="example-queries">
+                <h3>💡 Example Queries:</h3>
+                <div class="example-query" onclick="useExample(this)">
+                    create a report from c_invoice table using column documentno, dateinvoiced and grandtotal for date range 2024-2025
+                </div>
+                <div class="example-query" onclick="useExample(this)">
+                    show me invoice data with document number, invoice date and total amount
+                </div>
+                <div class="example-query" onclick="useExample(this)">
+                    generate a report for all invoices from 2024 with document number and grand total
+                </div>
+            </div>
+
+            <div class="input-container">
+                <input type="text" id="userInput" class="input-field" placeholder="Describe the report you want to generate..." onkeypress="handleKeyPress(event)">
+                <button id="sendBtn" class="send-btn" onclick="sendMessage()">Send</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Generating your report...</p>
+            </div>
+
+            <div class="download-section" id="downloadSection">
+                <h3>✅ Report Generated Successfully!</h3>
+                <p>Your JRXML file is ready for download.</p>
+                <a id="downloadLink" class="download-btn" href="#" target="_blank">
+                    📥 Download JRXML File
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function useExample(element) {
+            document.getElementById('userInput').value = element.textContent.trim();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function addMessage(content, isUser = false) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.textContent = content;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('sendBtn').disabled = show;
+        }
+
+        function showDownloadSection(filename, downloadUrl) {
+            const downloadSection = document.getElementById('downloadSection');
+            const downloadLink = document.getElementById('downloadLink');
+            
+            downloadLink.href = downloadUrl;
+            downloadLink.download = filename;
+            
+            downloadSection.style.display = 'block';
+            downloadSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const message = userInput.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, true);
+            userInput.value = '';
+            
+            // Show loading
+            showLoading(true);
+            
+            try {
+                const response = await fetch('/generate_report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ request: message })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addMessage(`✅ Report generated successfully! Found ${result.rows_returned} rows of data.`);
+                    addMessage(`📊 SQL Query: ${result.sql_query}`);
+                    addMessage(`🤖 AI Model: ${result.ai_model}`);
+                    
+                    // Show download section
+                    showDownloadSection(result.filename, result.download_url);
+                } else {
+                    addMessage(`❌ Error: ${result.detail || 'Failed to generate report'}`);
+                }
+            } catch (error) {
+                addMessage(`❌ Error: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+    </script>
+</body>
+</html> 

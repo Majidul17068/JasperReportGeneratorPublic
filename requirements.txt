@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+openai
+python-dotenv
+jinja2
+psycopg2-binary
+pydantic
+pandas 
